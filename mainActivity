@@ -1,64 +1,108 @@
-package com.example.musicplayer;
-
+package com.example.m1;
 
 import android.media.MediaPlayer;
+import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
-import androidx.appcompat.app.AppCompatActivity;
+public class MainActivity extends AppCompatActivity {
 
-public class MainActivity
-        extends AppCompatActivity {
+    private MediaPlayer mediaPlayer;
+    private TextView tvSongName;
+    private Button btnPause, btnStart, btnNext, btnStop;
 
-    // Instantiating the MediaPlayer class
-    MediaPlayer music;
-
+    private int currentSongIndex = 0;
+    private int[] songResources = {R.raw.song1, R.raw.song2, R.raw.song3, R.raw.song4, R.raw.song5};
 
     @Override
-    protected void onCreate(
-            Bundle savedInstanceState)
-    {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Adding the music file to our
-        // newly created object music
-        music = MediaPlayer.create(this, R.raw.butter);
-        music = MediaPlayer.create(this, R.raw.slowly);
-        music = MediaPlayer.create(this, R.raw.dekhle);
+        mediaPlayer = MediaPlayer.create(this, songResources[currentSongIndex]);
+        tvSongName = findViewById(R.id.tvSongName);
+        btnPause = findViewById(R.id.btnPause);
+        btnStart = findViewById(R.id.btnStart);
+        btnNext = findViewById(R.id.btnNext);
+        btnStop = findViewById(R.id.btnStop);
 
+        btnPause.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                pauseSong();
+            }
+        });
 
+        btnStart.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startSong();
+            }
+        });
 
+        btnNext.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                playNextSong();
+            }
+        });
 
-
+        btnStop.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                stopSong();
+            }
+        });
     }
 
-
-
-
-    // Playing the music
-    public void musicplay(View v)
-    {
-        music.start();
+    private void pauseSong() {
+        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+            mediaPlayer.pause();
+            btnPause.setEnabled(false);
+            btnStart.setEnabled(true);
+            tvSongName.setText("Song Paused: " + getCurrentSongName());
+        }
     }
 
-    // Pausing the music
-    public void musicpause(View v)
-    {
-        music.pause();
+    private void startSong() {
+        if (mediaPlayer != null && !mediaPlayer.isPlaying()) {
+            mediaPlayer.start();
+            btnStart.setEnabled(false);
+            btnPause.setEnabled(true);
+            tvSongName.setText("Now Playing: " + getCurrentSongName());
+        }
     }
 
-    // Stopping the music
-    public void musicstop(View v)
-    {
-        music.stop();
-        music = MediaPlayer.create(this, R.raw.slowly);
-        music = MediaPlayer.create(this, R.raw.butter);
-        music = MediaPlayer.create(this, R.raw.dekhle);
+    private void playNextSong() {
+        currentSongIndex = (currentSongIndex + 1) % songResources.length;
+        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+            mediaPlayer.stop();
+        }
+        mediaPlayer = MediaPlayer.create(this, songResources[currentSongIndex]);
+        startSong();
+    }
 
+    private void stopSong() {
+        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+            mediaPlayer.stop();
+            mediaPlayer.prepareAsync();
+            btnStart.setEnabled(true);
+            btnPause.setEnabled(false);
+            tvSongName.setText("Song Stopped");
+        }
+    }
 
+    private String getCurrentSongName() {
+        String[] songNames = {"Song 1", "Song 2", "Song 3", "Song 4", "Song 5"};
+        return songNames[currentSongIndex];
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mediaPlayer.release(); // Release the MediaPlayer resources
     }
 }
